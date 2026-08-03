@@ -38,7 +38,7 @@ jobs:
         IMAGE_TAG: ${{ github.sha }} 
       run: |
         # Cambiamos al directorio donde están tus archivos
-        cd infraestructura/dev/fargate
+        cd infraestructura/dev/otel-repo
         
         # Construimos la imagen con el tag del commit y también como latest
         docker build -t $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG .
