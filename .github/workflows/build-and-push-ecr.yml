@@ -4,10 +4,11 @@ on:
   push:
     branches:
       - main # O la rama que uses para tus despliegues
-    paths:
+    #paths:
       # Solo se ejecuta si cambias el Dockerfile o la configuración de OTel
-      - 'infraestructura/dev/otel-repo/otel-config.yaml'
-      - 'infraestructura/dev/otel-repo/Dockerfile'
+    #  - 'infraestructura/dev/otel-repo/otel-config.yaml'
+    #  - 'infraestructura/dev/otel-repo/Dockerfile'
+  workflow_dispatch: # Permite ejecutar manualmente desde la UI de GitHub Actions
 
 jobs:
   build-and-push:
@@ -33,7 +34,7 @@ jobs:
       env:
         ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
         # Cambia esto por el nombre exacto de tu repo ECR en Terraform
-        ECR_REPOSITORY: devspace/otel-images 
+        ECR_REPOSITORY: otel-collector-otel-collector
         # Usamos el hash del commit de Git como tag para la inmutabilidad
         IMAGE_TAG: ${{ github.sha }} 
       run: |

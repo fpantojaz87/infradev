@@ -5,9 +5,9 @@ remote_state {
     if_exists = "overwrite_terragrunt"
   }
     config = {
-        bucket  = "tf-iac-opentelemetry"
+        bucket  = "tf-iac-otel"
         key = "${path_relative_to_include()}/terraform.tfstate"
-        region  = "us-east-1"
+        region  = "us-east-2"
         encrypt = true
         use_lockfile = true
     }

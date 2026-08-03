@@ -1,0 +1,10 @@
+# Terraform
+.terraform/
+*.tfstate
+*.tfstate.backup
+*.tfvars
+crash.log
+
+# Terragrunt
+.terragrunt-cache/
+terragrunt-debug.tfvars.json
