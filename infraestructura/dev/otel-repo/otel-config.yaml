@@ -1,3 +1,4 @@
+# Configuración del OTEL Collector para recibir métricas y trazas
 receivers:
   otlp:
     protocols:

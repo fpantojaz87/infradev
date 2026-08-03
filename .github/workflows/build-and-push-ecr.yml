@@ -33,7 +33,7 @@ jobs:
       env:
         ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
         # Cambia esto por el nombre exacto de tu repo ECR en Terraform
-        ECR_REPOSITORY: fargate-repep-service-otel-collector 
+        ECR_REPOSITORY: devspace/otel-images 
         # Usamos el hash del commit de Git como tag para la inmutabilidad
         IMAGE_TAG: ${{ github.sha }} 
       run: |
