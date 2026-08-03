@@ -1,0 +1,49 @@
+name: Build and Push OpenTelemetry to ECR
+
+on:
+  push:
+    branches:
+      - main # O la rama que uses para tus despliegues
+    paths:
+      # Solo se ejecuta si cambias el Dockerfile o la configuración de OTel
+      - 'infraestructura/dev/otel-repo/otel-config.yaml'
+      - 'infraestructura/dev/otel-repo/Dockerfile'
+
+jobs:
+  build-and-push:
+    name: Build and Push to ECR
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout del código
+      uses: actions/checkout@v4
+
+    - name: Configurar credenciales de AWS
+      uses: aws-actions/configure-aws-credentials@v4
+      with:
+        aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+        aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+        aws-region: us-east-2 # Asegúrate de que coincida con tu infraestructura
+
+    - name: Login en Amazon ECR
+      id: login-ecr
+      uses: aws-actions/amazon-ecr-login@v2
+
+    - name: Construir, etiquetar y subir la imagen
+      env:
+        ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
+        # Cambia esto por el nombre exacto de tu repo ECR en Terraform
+        ECR_REPOSITORY: fargate-repep-service-otel-collector 
+        # Usamos el hash del commit de Git como tag para la inmutabilidad
+        IMAGE_TAG: ${{ github.sha }} 
+      run: |
+        # Cambiamos al directorio donde están tus archivos
+        cd infraestructura/dev/fargate
+        
+        # Construimos la imagen con el tag del commit y también como latest
+        docker build -t $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG .
+        docker build -t $ECR_REGISTRY/$ECR_REPOSITORY:latest .
+        
+        # Hacemos push de ambas etiquetas a ECR
+        docker push $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG
+        docker push $ECR_REGISTRY/$ECR_REPOSITORY:latest
