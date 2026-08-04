@@ -1,11 +1,15 @@
-#data "aws_secretsmanager_secret_version" "secrets-privalia2" {
-#  secret_id = "secrets-privalia2"
-#}
+data "aws_secretsmanager_secret" "secrets-dev" {
+  name = "secrets-dev"
+}
 
 # Decode the secret string if it contains JSON (optional)
 #locals {
-#  values = jsondecode(data.aws_secretsmanager_secret_version.secrets-privalia2.secret_string)
+#  values = jsondecode(data.aws_secretsmanager_secret_version.secrets-dev.secret_string)
 #}
+
+resource "aws_ecs_cluster" "fargate_cluster" {
+  name = var.name_cluster
+}
 
 #Rol de ejecucion para las tareas de ECS
 resource "aws_iam_role" "ecs_task_execution_role" {
@@ -48,7 +52,10 @@ Statement = [
             "ecr:GetLifecyclePolicyPreview",
             "ecr:GetRepositoryPolicy",
             "ecr:ListImages",
-            "ecr:ListTagsForResource"
+            "ecr:ListTagsForResource",
+            "ssm:GetParameters",
+            "secretsmanager:GetSecretValue",
+            "kms:Decrypt"
         ],
         Effect   = "Allow",
         Resource = "*"
@@ -97,10 +104,11 @@ resource "aws_ecs_task_definition" "fargate_task" {
     {
       "name": "aws-otel-collector",
       # AQUI APUNTAMOS AL REPOSITORIO PRIVADO + EL TAG DINÁMICO
-      "image": "${aws_ecr_repository.otel_custom_repo.repository_url}:${var.image_tag}",
+      #"image": "${aws_ecr_repository.otel_custom_repo.repository_url}:${var.image_tag}",
+      "image": "${var.repository_url}:${var.image_tag}",
       "essential": true,
-      "cpu": 256,
-      "memory": 512,
+      "cpu": 128,
+      "memory": 256,
       "portMappings": [
         { "containerPort": 4317, "protocol": "tcp" },
         { "containerPort": 4318, "protocol": "tcp" },
@@ -119,7 +127,7 @@ resource "aws_ecs_task_definition" "fargate_task" {
       "secrets": [
         {
           "name": "DD_API_KEY",
-          "valueFrom": "dd-api-key-secret-arn" # Asegúrate de que el rol de ejecución tenga permisos de lectura en Secrets Manager para este ARN
+          "valueFrom": "${data.aws_secretsmanager_secret.secrets-dev.arn}:DD_API_KEY::"
         }
       ],
       "environment": [
@@ -132,12 +140,12 @@ resource "aws_ecs_task_definition" "fargate_task" {
 
 resource "aws_ecs_service" "fargate_service" {   
     name            = var.name_service  
-    cluster         = "fagate-Dev"  
+    cluster         = aws_ecs_cluster.fargate_cluster.id
     task_definition = aws_ecs_task_definition.fargate_task.arn   
     desired_count   = 1   
     launch_type      = "FARGATE"   
     network_configuration {     
-        subnets          = ["subnet-0fefd8a751e03da2a","subnet-0ee8c736f048a4482","subnet-0f22d771a4660b226"]
+        subnets          = ["subnet-00a7eb0581a9809e8","subnet-0213a9009720d4d32"]
         security_groups  = [aws_security_group.dev-test.id]
         assign_public_ip = false
         }
@@ -156,4 +164,9 @@ resource "aws_security_group" "dev-test" {
     protocol    = "-1"
     cidr_blocks = ["0.0.0.0/0"]
   }
+}
+
+resource "aws_cloudwatch_log_group" "otel_log_group" {
+  name              = "/ecs/otel-collector"
+  retention_in_days = 7
 }
