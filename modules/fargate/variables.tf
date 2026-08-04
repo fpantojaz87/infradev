@@ -11,3 +11,13 @@ variable "image_tag" {
   type        = string
   default     = "latest" # Idealmente, tu CI/CD sobreescribirá esto
 }
+
+variable "public_subnets" {
+  description = "Lista de subredes públicas para el ALB"
+  type        = list(string)
+}
+
+variable "acm_certificate_arn" {
+  description = "ARN del certificado SSL en AWS Certificate Manager"
+  type        = string
+}
