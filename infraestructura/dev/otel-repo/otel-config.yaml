@@ -1,4 +1,8 @@
-# Configuración del OTEL Collector para recibir métricas y trazas
+# Configuración del OTEL Collector (Gateway)
+extensions:
+  health_check:
+    endpoint: "0.0.0.0:13133"
+    
 receivers:
   otlp:
     protocols:
@@ -6,30 +10,31 @@ receivers:
         endpoint: 0.0.0.0:4317
       http:
         endpoint: 0.0.0.0:4318
-  hostmetrics:
+        
+  # REEMPLAZO DE HOSTMETRICS: Este recolector le pregunta a Fargate por la CPU/RAM
+  awsecscontainermetrics:
     collection_interval: 10s
-    scrapers:
-      cpu: {}
-      memory: {}
-      disk: {}
-      filesystem: {}
-      load: {}
-      network: {}
+
 processors:
   batch:
 
 exporters:
+  # Excelente para depurar. Los datos aparecerán en CloudWatch Logs
   debug:
     verbosity: detailed
 
 service:
+  # ¡MUY IMPORTANTE! Encender la extensión para el ALB
+  extensions: [health_check] 
+  
   pipelines:
     traces:
       receivers: [otlp]
       processors: [batch]
       exporters: [debug]
     metrics:
-      receivers: [otlp, hostmetrics]
+      # Agregamos las métricas de Fargate al pipeline
+      receivers: [otlp, awsecscontainermetrics] 
       processors: [batch]
       exporters: [debug]
     logs:
