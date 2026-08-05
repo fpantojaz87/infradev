@@ -17,6 +17,7 @@ variable "public_subnets" {
   type        = list(string)
 }
 
+
 variable "acm_certificate_arn" {
   description = "ARN del certificado SSL en AWS Certificate Manager"
   type        = string
