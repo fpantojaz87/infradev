@@ -22,6 +22,9 @@ exporters:
     api:
       key: ${DD_API_KEY} 
       site: us5.datadoghq.com
+    metrics:
+      histograms:
+        mode: distributions
   debug:
     verbosity: detailed
 
