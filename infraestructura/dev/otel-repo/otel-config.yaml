@@ -19,7 +19,11 @@ processors:
   batch:
 
 exporters:
-  # Excelente para depurar. Los datos aparecerán en CloudWatch Logs
+  # Agregamos el exportador de Datadog
+  datadog:
+    api:
+      key: ${DD_API_KEY} # OTel leerá esto de la variable de entorno inyectada por ECS
+      site: us5.datadoghq.com
   debug:
     verbosity: detailed
 
