@@ -11,7 +11,6 @@ receivers:
       http:
         endpoint: 0.0.0.0:4318
         
-  # REEMPLAZO DE HOSTMETRICS: Este recolector le pregunta a Fargate por la CPU/RAM
   awsecscontainermetrics:
     collection_interval: 10s
 
@@ -19,29 +18,29 @@ processors:
   batch:
 
 exporters:
-  # Agregamos el exportador de Datadog
   datadog:
     api:
-      key: ${DD_API_KEY} # OTel leerá esto de la variable de entorno inyectada por ECS
+      key: ${DD_API_KEY} 
       site: us5.datadoghq.com
   debug:
     verbosity: detailed
 
 service:
-  # ¡MUY IMPORTANTE! Encender la extensión para el ALB
   extensions: [health_check] 
   
   pipelines:
     traces:
       receivers: [otlp]
       processors: [batch]
-      exporters: [debug]
+      # AQUÍ ESTÁ EL CAMBIO: Agregamos datadog
+      exporters: [datadog, debug] 
     metrics:
-      # Agregamos las métricas de Fargate al pipeline
       receivers: [otlp, awsecscontainermetrics] 
       processors: [batch]
-      exporters: [debug]
+      # AQUÍ ESTÁ EL CAMBIO
+      exporters: [datadog, debug] 
     logs:
       receivers: [otlp]
       processors: [batch]
-      exporters: [debug]
+      # AQUÍ ESTÁ EL CAMBIO
+      exporters: [datadog, debug]
