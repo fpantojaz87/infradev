@@ -4,6 +4,7 @@
 *.tfstate.backup
 *.tfvars
 crash.log
+.terraform.lock.hcl
 
 # Terragrunt
 .terragrunt-cache/
