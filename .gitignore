@@ -8,3 +8,5 @@ crash.log
 # Terragrunt
 .terragrunt-cache/
 terragrunt-debug.tfvars.json
+.terragrunt.local.hcl
+.terragrunt.lock.hcl
